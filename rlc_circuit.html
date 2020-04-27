@@ -1,0 +1,173 @@
+
+<html><head>
+	<!-- Load plotly.js into the DOM -->
+	
+	<script Language= "JavaScript" src="https://cdn.plot.ly/plotly-latest.min.js">
+	</script>
+	<script Language= "JavaScript">
+		function rlc_circuit()
+		{
+			var V= Number(document.black.txtNum3.value);
+			var r1= Number(document.black.txtNum.value);
+			var c= Number(document.black.txtNum2.value);
+			var r2= Number(document.black.txtNum4.value);
+			var r3= Number(document.black.txtNum5.value);
+			var w= Number(document.black.txtNum6.value);
+			var l= Number(document.black.txtNum7.value);
+			var i=new Array(1000000);
+            var t=new Array(1000000);
+            var i1=new Array(1000000);
+            var t1=new Array(1000000);
+            var i2=new Array(1000000);
+            var t2=new Array(1000000);
+            
+			//In the figure there is only one node.
+			var xc=-1/(c*w);
+			var xl=l*w;
+			var conj=
+            {
+				img:xl,
+				real:r3
+			}
+			var conj1=
+            {
+				img:xc,
+				real:r2
+			}
+			//(1/r1+1/conj+1/conj2)*V1=V/r1
+			var conjuu=conjugateMultiplier(conj.img,conj.real);
+			var conjuu2=conjugateMultiplier(conj1.img,conj1.real);
+			var R=1/r1+conjuu[1]+conjuu2[1];
+			var I=conjuu[0]+conjuu2[0];
+			var conjuu3=conjugateMultiplier(I,R);
+			var delV=
+			{
+				x:(V/r1)*conjuu3[1],
+				y:(V/r1)*conjuu3[0]
+			}
+			
+				
+				
+			
+			//I1 = current passing through branch containing R1
+			//I2 = current passing through branch containing R2
+			//I3 = current passing through branch containing R3
+			var X={
+				x:r2,
+				y:xc
+			}
+			var X1={
+				x:r3,
+				y:xl
+			}
+			//to find current I2
+			var conjuu4=divide2complex(delV,X);
+			var theta=Math.atan(conjuu4[0]/conjuu4[1]);
+			var z=6*2*3.14/w;
+			var h=1/10000;
+			for(var n=0;n<(z*10000);n++)
+			{
+				t[n]=n*h;
+				i[n]=Math.sqrt((conjuu4[0]*conjuu4[0])+(conjuu4[1]*conjuu4[1]))*Math.sin(w*t[n]+theta);
+			}
+			
+			//to find current I3
+				
+			var conjuu5=divide2complex(delV,X1);
+			var theta=Math.atan(conjuu5[0]/conjuu5[1]);
+			var z=6*2*3.14/w;
+			var h=1/10000;
+			for(var n=0;n<(z*10000);n++)
+			{
+				t2[n]=n*h;
+				i2[n]=Math.sqrt((conjuu5[0]*conjuu5[0])+(conjuu5[1]*conjuu5[1]))*Math.sin(w*t2[n]+theta);
+			}
+			//to find current I1
+			var delV2=
+			{
+				x:V-V*conjuu3[1],
+				y:-1*V*conjuu3[0]
+			}
+		    var conjuu6=[(delV2.y)/r1,(delV2.x)/r1];
+			var theta=Math.atan(conjuu6[0]/conjuu6[1]);
+			var z=6*2*3.14/w;
+			var h=1/10000;
+			for(var n=0;n<(z*10000);n++)
+			{
+				t1[n]=n*h;
+				i1[n]=Math.sqrt((conjuu6[0]*conjuu6[0])+(conjuu6[1]*conjuu6[1]))*Math.sin(w*t1[n]+theta);
+			}
+			
+			
+
+			var trace1 = {
+            x:t,y:i,
+            name:'I2',
+            type: 'scatter'
+		};
+           var trace2 = {
+            x:t2,y:i2,
+            name:'I3',
+            type: 'scatter'
+		};
+		 var trace3 = {
+            x:t1,y:i1,
+            name:'I1',
+            type: 'scatter'
+		};
+		var data=[trace1,trace2,trace3];
+		var layout = {
+         title: 'R_C Circuit',
+         showlegend: false
+        };
+		Plotly.newPlot('myDiv', data, layout, {scrollZoom: true});
+		}
+		
+		
+		function conjugateMultiplier(i,r)
+		{
+			var i1=-1*i/(i*i+r*r);
+			var r2=r/(i*i+r*r);
+			var conju=[i1,r2];
+			return conju;
+		}
+		function divide2complex(delV,X)//syntax (numerator,denominator)
+		{
+			var mod=(X.x)*(X.x)+(X.y)*(X.y);
+			var r=((delV.x*X.x)+(delV.y*X.y))/mod;
+			var i=((delV.y*X.x)-(delV.x*X.y))/mod;
+			var arr=[i,r];
+			return arr;
+			
+		}
+		
+	
+	
+	</script>
+	
+</head>
+
+<body>
+	 <form name="black">
+    <CENTER><img src="rlc.png"><br><br>
+		 Enter the value of resistence R1(in ohms)
+      <INPUT Type= "text" Name= "txtNum"> <BR><BR> 
+        Enter the value of capacitance(in farads)
+      <INPUT Type= "text" Name= "txtNum2"> <BR><BR> 
+      Enter the value of inductance(in henry)
+      <INPUT Type= "text" Name= "txtNum7"> <BR><BR> 
+        Enter the maximum value of input ac voltage (in volts)
+        <INPUT Type= "text" Name= "txtNum3"> <BR><BR> 
+        Enter the angular frequency of ac voltage (in rad/sec)
+        <INPUT Type= "text" Name= "txtNum6"> <BR><BR> 
+        
+         Enter the value of resistence R2(in ohms)
+      <INPUT Type= "text" Name= "txtNum4"> <BR><BR> 
+       Enter the value of resistence R3(in ohms)
+      <INPUT Type= "text" Name= "txtNum5"> <BR><BR> 
+        <INPUT Type= "button" Value= "Ok" onClick= "rlc_circuit()">
+        </center> </form>
+	<div id='myDiv'><!-- Plotly chart will be drawn inside this DIV --></div>
+	
+</body>
+</html>
